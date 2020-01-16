@@ -1,5 +1,10 @@
 const express = require('express');
 
+const { 
+  validateHubId, 
+  validateHubData 
+} = require('../middleware/validate');
+
 const Hubs = require('./hubs-model.js');
 const Messages = require('../messages/messages-model.js');
 
@@ -12,35 +17,21 @@ router.get('/', (req, res) => {
     res.status(200).json(hubs);
   })
   .catch(error => {
-    // log error to server
     console.log(error);
-    res.status(500).json({
-      message: 'Error retrieving the hubs',
-    });
+    // res.status(500).json({
+    //   message: 'Error retrieving the hubs',
+    // });
+    next(error);
   });
 });
 
 // /api/hubs/:id
 
-router.get('/:id', (req, res) => {
-  Hubs.findById(req.params.id)
-  .then(hub => {
-    if (hub) {
-      res.status(200).json(hub);
-    } else {
-      res.status(404).json({ message: 'Hub not found' });
-    }
-  })
-  .catch(error => {
-    // log error to server
-    console.log(error);
-    res.status(500).json({
-      message: 'Error retrieving the hub',
-    });
-  });
+router.get('/:id', validateHubId(), (req, res) => {
+  res.json(req.hub)
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateHubData(), (req, res) => {
   Hubs.add(req.body)
   .then(hub => {
     res.status(201).json(hub);
@@ -48,45 +39,40 @@ router.post('/', (req, res) => {
   .catch(error => {
     // log error to server
     console.log(error);
-    res.status(500).json({
-      message: 'Error adding the hub',
-    });
+    // res.status(500).json({
+    //   message: 'Error adding the hub',
+    // });
+    next(error);
   });
 });
 
-router.delete('/:id', (req, res) => {
-  Hubs.remove(req.params.id)
-  .then(count => {
-    if (count > 0) {
+router.delete('/:id', validateHubId(), (req, res) => {
+  Hubs.remove(req.hub.id)
+  .then(() => {
       res.status(200).json({ message: 'The hub has been nuked' });
-    } else {
-      res.status(404).json({ message: 'The hub could not be found' });
-    }
   })
   .catch(error => {
     // log error to server
     console.log(error);
-    res.status(500).json({
-      message: 'Error removing the hub',
-    });
+    // res.status(500).json({
+    //   message: 'Error removing the hub',
+    // });
+    next(error);
   });
 });
 
-router.put('/:id', (req, res) => {
-  Hubs.update(req.params.id, req.body)
+router.put('/:id', validateHubData(), validateHubId(), (req, res) => {
+  Hubs.update(req.hub.id, req.body)
   .then(hub => {
-    if (hub) {
       res.status(200).json(hub);
-    } else {
-      res.status(404).json({ message: 'The hub could not be found' });
-    }
   })
   .catch(error => {
     // log error to server
     console.log(error);
-    res.status(500).json({
-      message: 'Error updating the hub',
-    });
+    // res.status(500).json({
+    //   message: 'Error updating the hub',
+    // });
+    next(error)
   });
 });
 
@@ -100,9 +86,10 @@ router.get('/:id/messages', (req, res) => {
   .catch (error => {
     // log error to server
     console.log(error);
-    res.status(500).json({
-      message: 'Error getting the messages for the hub',
-    });
+    // res.status(500).json({
+    //   message: 'Error getting the messages for the hub',
+    // });
+    next(error);
   });
 });
 
@@ -117,9 +104,10 @@ router.post('/:id/messages', (req, res) => {
   .catch(error => {
     // log error to server
     console.log(error);
-    res.status(500).json({
-      message: 'Error getting the messages for the hub',
-    });
+    // res.status(500).json({
+    //   message: 'Error getting the messages for the hub',
+    // });
+    next(error);
   });
 });
 
